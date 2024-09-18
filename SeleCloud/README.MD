@@ -14,3 +14,12 @@ Running selenium in cloud testing
       - .:/workspace
      ```
     - Thisis he poitn where the workspace is defined
+  4. Observe the config file in this folder 
+
+# Executing the python script 
+
+1. Ensure tht it is in this folder 
+
+```docker 
+docker-compose exec selenium python /workspace/p1w.py
+```
