@@ -16,6 +16,13 @@ Running selenium in cloud testing
     - Thisis he poitn where the workspace is defined
   4. Observe the config file in this folder 
 
+# Starting up the container 
+
+```docker 
+docker-compose up -d 
+```
+- starts it in detached mode , so you can execute the python script below
+
 # Executing the python script 
 
 1. Ensure tht it is in this folder 
