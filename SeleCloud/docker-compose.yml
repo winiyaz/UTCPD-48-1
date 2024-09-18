@@ -5,7 +5,7 @@ services:
   selenium:
     build:
       context: .
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: ./Dockerfile
     volumes:
       - .:/workspace
     command: tail -f /dev/null
