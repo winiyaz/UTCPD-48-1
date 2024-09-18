@@ -17,5 +17,5 @@ RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RE
     && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
     && rm /tmp/chromedriver.zip
 
-# Install Selenium
-RUN pip install selenium
+# Install Selenium and webdriver_manager
+RUN pip install selenium webdriver-manager
