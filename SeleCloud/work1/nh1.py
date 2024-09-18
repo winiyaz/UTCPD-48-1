@@ -1,53 +1,61 @@
-#!/usr/bin/env python3
-
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-import requests
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import os
 import base64
 
-# Set up Chrome options
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Run in headless mode
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+# Replace with your actual website URL
+website_url = "https://nhentai.net/g/516162"
 
-# Initialize the Chrome driver
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+# Create a new Chrome webdriver instance
+driver = webdriver.Chrome()
+driver.get(website_url)
 
-# Open the website
-driver.get("https://nhentai.net/g/516162/")
+# Wait for the image thumbnails to load
+wait = WebDriverWait(driver, 10)
+thumbnails = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.thumb-container a.gallerythumb img")))
 
-# Create a directory to save images
-if not os.path.exists("images"):
-    os.makedirs("images")
+# Create a directory to store the images
+os.makedirs("images", exist_ok=True)
 
-# Getting all thumb-container elements
-thumb_containers = driver.find_elements(By.CLASS_NAME, "thumb-container")
+# Iterate through the image thumbnails
+for i, thumbnail in enumerate(thumbnails):
+    # Get the image URL
+    image_url = thumbnail.get_attribute("data-src")
 
-# Iterate through each thumb-container and download the images
-for index, thumb_container in enumerate(thumb_containers):
-    img_element = thumb_container.find_element(By.TAG_NAME, "img")
-    img_url = img_element.get_attribute("src")
+    # Check if it's a data URI
+    if image_url.startswith('data:image/'):
+        # Decode the base64 encoded image data
+        header, encoded_data = image_url.split(",", 1)
+        data = base64.b64decode(encoded_data)
 
-    if img_url.startswith("data:image"):
-        # Handle data URL
-        _, base64_data = img_url.split(",", 1)
-        image_data = base64.b64decode(base64_data)
-        with open(f"images/thumbnail_{index}.jpg", "wb") as file:
-            file.write(image_data)
-        print(f"Data URL image {index} saved successfully.")
+        # Save the image
+        image_name = f"image_{i + 1}.png"
+        with open(os.path.join("images", image_name), "wb") as f:
+            f.write(data)
+
+        print(f"Downloaded {image_name}")
     else:
-        # Handle regular URL
-        response = requests.get(img_url)
-        if response.status_code == 200:
-            with open(f"images/thumbnail_{index}.jpg", "wb") as file:
-                file.write(response.content)
-            print(f"Image {index} downloaded successfully.")
-        else:
-            print(f"Failed to download image {index}.")
+        # Download the image from the URL if it's not a data URI
+        try:
+            driver.get(image_url)
+            # Wait for the image to load
+            wait = WebDriverWait(driver, 10)
+            image = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "img.lazyload")))
 
-# Close the driver
+            # Get the image source
+            image_source = image.get_attribute("src")
+
+            # Save the image
+            image_name = f"image_{i + 1}.png"
+            with open(os.path.join("images", image_name), "wb") as f:
+                f.write(driver.get_screenshot_as_png())
+
+            print(f"Downloaded {image_name}")
+
+        except Exception as e:
+            print(f"Error downloading image {i + 1}: {e}")
+
+# Close the browser
 driver.quit()
